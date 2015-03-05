@@ -8,14 +8,11 @@ You can use `Escaper` class to include parser to your terminal:
 
 ```
 escaper = new Escaper();
-term = new Terminal({escaper: escaper});
 ```
 Then you can use `escape` method:
 ```
-escaper.escape(term, "data")
+escaper.escape("abcd\re")
 ```
-
-Your terminal should have realization of all terminal-using methods. List of all required methods is in `docs/METHODS.md` file.
 
 ### Contribution and License Agreement
 

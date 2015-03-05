@@ -1,5 +1,21 @@
 {
   "name": "escaper.js",
-  "version": "0.0.1",
-  "ignore": ["demo", "docs"]
+  "version": "0.0.3",
+  "homepage": "https://github.com/aelaa/escaper.js",
+  "authors": [
+    "Ilya Shakirov <aelaau@gmail.com>"
+  ],
+  "description": "tty escape sequences parser",
+  "main": "src/escaper.js",
+  "keywords": [
+    "xterm"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
 }

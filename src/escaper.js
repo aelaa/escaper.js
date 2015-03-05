@@ -5,19 +5,18 @@ function Escaper() {
   this.line = [];
   this.defAttr = (0 << 18) | (257 << 9) | (256 << 0);
   this.curAttr = this.defAttr;
-  this.params = [];
 };
 
 var normal = 0, escaped = 1, csi = 2, osc = 3, charset = 4, dcs = 5, ignore = 6;
 
 Escaper.prototype.escape = function(data) {
-  var l = data.length, i = 0, j, cs, ch, out
+  var l = data.length, i = 0, ch
     , state = 0
     , savedX = 0
     , currentParam = 0
-    , x = 0;
+    , x = 0
+    , params = [];
   this.line = [];
-  out = ""
 
   for (; i < l; i++) {
     ch = data[i];
@@ -99,25 +98,18 @@ Escaper.prototype.escape = function(data) {
         // ESC 7 Save Cursor (DECSC).
         case '7':
           savedX = x;
-          state = normal;
+        state = normal;
         break;
 
         // ESC 8 Restore Cursor (DECRC).
         case '8':
           x = savedX || 0;
-          state = normal;
+        state = normal;
         break;
 
         default:
           state = normal;
         break;
-      }
-      break;
-
-      case osc:
-        if (ch === '\x1b' || ch === '\x07') {
-        if (ch === '\x1b') i++;
-        state = normal;
       }
       break;
 
@@ -139,7 +131,7 @@ Escaper.prototype.escape = function(data) {
         break;
       }
 
-      this.params.push(currentParam);
+      params.push(currentParam);
       currentParam = 0;
 
       // ';'
@@ -151,14 +143,14 @@ Escaper.prototype.escape = function(data) {
         // CSI Pm m  Character Attributes (SGR).
         case 'm':
           if (!this.prefix) {
-          this.charAttributes(this.params);
+          this.curAttr = this.charAttributes(params);
         }
         break;
 
         // CSI s
         //   Save cursor (ANSI.SYS).
         case 's':
-        savedX = x;
+          savedX = x;
         break;
 
         // CSI u
@@ -168,46 +160,38 @@ Escaper.prototype.escape = function(data) {
         break;
 
         default:
-          //aelaa: Simply ignored sequences
           this.prefix = '';
-        this.postfix = '';
+          this.postfix = '';
         break;
 
-        case dcs:
-          if (ch === '\x1b' || ch === '\x07') {
-          if (ch === '\x1b') i++;
-          currentParam = 0;
-          this.prefix = '';
-          state = normal;
-        }
-        break;
-
-        case ignore:
-          // For PM and APC.
-          if (ch === '\x1b' || ch === '\x07') {
-          if (ch === '\x1b') i++;
-          state = normal;
-        }
-        break;
       };
+
+      case osc:
+      case dcs:
+      case ignore:
+        if (ch === '\x1b' || ch === '\x07') {
+        if (ch === '\x1b') i++;
+        currentParam = 0;
+        state = normal;
+      }
+      break;
+
     };
   }
 
-  for (i=0;i<this.line.length;i++)
-  {
-    out += this.line[i][1];
-  }
+  // for (i=0;i<this.line.length;i++)
+  // {
+  //   out += this.line[i][1];
+  // }
   x = 0;
   return this.refresh();
 };
 
 Escaper.prototype.refresh = function() {
   var line = this.line
-    , defAttr = (0 << 18) | (257 << 9) | (256 << 0)
-    , curAttr = defAttr
     , out = ''
     , i = 0
-    , attr = defAttr
+    , attr = this.defAttr
     , ch, data, bg, fg, flags, row;
 
   for (; i < line.length; i++) {
@@ -215,10 +199,10 @@ Escaper.prototype.refresh = function() {
     ch = line[i][1];
 
     if (data !== attr) {
-      if (attr !== defAttr) {
+      if (attr !== this.defAttr) {
         out += '</span>';
       }
-      if (data !== defAttr) {
+      if (data !== this.defAttr) {
         out += '<span class="';
 
         bg = data & 0x1ff;
@@ -303,8 +287,7 @@ Escaper.prototype.refresh = function() {
 Escaper.prototype.charAttributes = function(params) {
   // Optimize a single SGR0.
   if (params.length === 1 && params[0] === 0) {
-    this.curAttr = this.defAttr;
-    return;
+    return this.defAttr;
   }
 
   var l = params.length
@@ -414,7 +397,7 @@ Escaper.prototype.charAttributes = function(params) {
     }
   }
 
-  this.curAttr = (flags << 18) | (fg << 9) | bg;
+  return (flags << 18) | (fg << 9) | bg;
 };
 
 function isWide(ch) {
