@@ -265,7 +265,7 @@ Escaper.prototype.refresh = function() {
         out += '<br>';
       break;
       default:
-        if (ch <= ' ') {
+        if (ch < ' ') {
         // out += '&nbsp;';
       } else {
         if (isWide(ch)) i++;
