@@ -410,3 +410,9 @@ function isWide(ch) {
             || (ch >= '\uffe0' && ch <= '\uffe6')
               || (ch >= '\uffe8' && ch <= '\uffee');
 };
+
+module.exports = Escaper;
+module.exports.escape = Escaper.prototype.escape;
+module.exports.refresh = Escaper.prototype.refresh;
+module.exports.charAttributes = Escaper.prototype.charAttributes;
+module.exports.isWide= isWide;
